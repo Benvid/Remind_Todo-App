@@ -100,7 +100,7 @@ class NewTask extends StatelessWidget {
                         _dateController.text =_dateFormat.format(selectedDate!) ;
                       });
                     },
-                    controller: _timeController,
+                    controller: _dateController,
                     maxLines: 1,
                     decoration: InputDecoration(
                       border: UnderlineInputBorder(

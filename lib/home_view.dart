@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:to_do_app/utils.dart';
 import 'package:to_do_app/views/add_new.dart';
 
@@ -14,9 +15,9 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   String selectedItem = "todo";
 
-  List<Map<String, dynamic>> _completedData = [];
+  final List<Map<String, dynamic>> _completedData = [];
 
-  List<Map<String, dynamic>> _uncompletedData = [];
+  final List<Map<String, dynamic>> _uncompletedData = [];
 
   final List<Map<String, dynamic>> data = [
     {
@@ -52,13 +53,13 @@ class _HomeViewState extends State<HomeView> {
     {
       'title': 'WRC Esport competetion',
       'description': 'aiming to win this time',
-      'date_time': '12pm',
+      'date_time': 'Today',
       'status': false,
     },
     {
       'title': 'Hack A Day competetion',
       'description': 'aiming to win this time',
-      'date_time': 'Yesterday',
+      'date_time': 'Today',
       'status': true,
     },
   ];
@@ -86,7 +87,7 @@ class _HomeViewState extends State<HomeView> {
                 onSelected: (value) {
                   setState(() {
                     selectedItem = value;
-                  }); 
+                  });
                 },
                 itemBuilder: (context) {
                   return [
@@ -107,71 +108,16 @@ class _HomeViewState extends State<HomeView> {
           )),
       body: ListView.separated(
           itemBuilder: (context, index) {
-            return Card(
-              margin: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              child: ListTile(
-                title: Text(_uncompletedData[index]['title'],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(
-                  data[index]['description'],
-                  style: TextStyle(
-                      color: _uncompletedData[index]['date_time']
-                              .contains('Yesterday')
-                          ? customColor(date: 'Yesterday')
-                          : _uncompletedData[index]['date_time']
-                                  .contains('Today')
-                              ? customColor(date: 'Today')
-                              : _uncompletedData[index]['date_time']
-                                      .contains('Tomorrow')
-                                  ? customColor(date: 'Tomorrow')
-                                  : customColor()),
-                ),
-                leading: Icon(Icons.check_circle_outline_outlined,
-                    color: _uncompletedData[index]['date_time']
-                            .contains('Yesterday')
-                        ? customColor(date: 'Yesterday')
-                        : _uncompletedData[index]['date_time'].contains('Today')
-                            ? customColor(date: 'Today')
-                            : _uncompletedData[index]['date_time']
-                                    .contains('Tomorrow')
-                                ? customColor(date: 'Tomorrow')
-                                : customColor()),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _uncompletedData[index]['date_time'],
-                      style: TextStyle(
-                          color: _uncompletedData[index]['date_time']
-                                  .contains('Yesterday')
-                              ? customColor(date: 'Yesterday')
-                              : _uncompletedData[index]['date_time']
-                                      .contains('Today')
-                                  ? customColor(date: 'Today')
-                                  : _uncompletedData[index]['date_time']
-                                          .contains('Tomorrow')
-                                      ? customColor(date: 'Tomorrow')
-                                      : customColor()),
-                    ),
-                    Icon(Icons.notifications_active_outlined,
-                        color: _uncompletedData[index]['date_time']
-                                .contains('Yesterday')
-                            ? customColor(date: 'Yesterday')
-                            : _uncompletedData[index]['date_time']
-                                    .contains('Today')
-                                ? customColor(date: 'Today')
-                                : _uncompletedData[index]['date_time']
-                                        .contains('Tomorrow')
-                                    ? customColor(date: 'Tomorrow')
-                                    : customColor())
-                  ],
-                ),
-              ),
-            );
+            return TaskCardWidget(
+                dateTime:  selectedItem == 'todo'
+              ? _uncompletedData[index]['date_time']
+              : _completedData[index]['date_time'],
+              description:  selectedItem == 'todo'
+              ? _uncompletedData[index]['description']
+              : _completedData[index]['description'],
+              title:  selectedItem == 'todo'
+              ? _uncompletedData[index]['title']
+              : _completedData[index]['title'],);
           },
           separatorBuilder: (context, index) {
             return SizedBox(
@@ -186,34 +132,53 @@ class _HomeViewState extends State<HomeView> {
         left: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          child: Material(
-            borderRadius: BorderRadius.circular(15),
-            color: Colors.blue[800],
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Icon(
-                      Icons.check_circle,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                  Text(
-                    'Completed',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
+          child: InkWell(
+            onTap: () {
+              showBarModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return ListView.separated(
+                        itemBuilder: (context, index) {
+                          return TaskCardWidget(
+                              dateTime: _completedData[index]['date_time'],
+                              title: _completedData[index]['title'],
+                              description: _completedData[index]['description']);
+                        },
+                        separatorBuilder: (context, index) {
+                          return SizedBox(height: 20);
+                        },
+                        itemCount: _completedData.length);
+                  });
+            },
+            child: Material(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.blue[800],
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        Icons.check_circle,
                         color: Colors.white,
-                        fontSize: 20),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('${_completedData.length}'),
-                  ),
-                ],
+                        size: 20,
+                      ),
+                    ),
+                    Text(
+                      'Completed',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 20),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('${_completedData.length}'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -234,4 +199,53 @@ class _HomeViewState extends State<HomeView> {
   }
 
   ButtomNavigationBar() {}
+}
+
+class TaskCardWidget extends StatelessWidget {
+  const TaskCardWidget({Key? key, required this.title, required this.description, required this.dateTime}) : super(key: key);
+
+  final String title;
+  final String description;
+  final String dateTime;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        title: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(
+          description,
+          maxLines: 3,
+          style: TextStyle(
+              color: customColor(
+                  date: dateTime)),
+        ),
+        leading: Icon(
+          Icons.check_circle_outline_outlined,
+          color: customColor(
+              date: dateTime),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              dateTime,
+              style: TextStyle(
+                  color: customColor(
+                      date: dateTime)),
+            ),
+            Icon(Icons.notifications_active_outlined,
+                color: customColor(
+                    date: dateTime))
+          ],
+        ),
+      ),
+    );
+  }
 }
